@@ -8,6 +8,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,8 +16,11 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String LOG_TAG = getClass().getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(LOG_TAG, "Method: " + new Object() {}.getClass().getEnclosingMethod().getName());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -30,6 +34,36 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d(LOG_TAG, "Method: " + new Object() {}.getClass().getEnclosingMethod().getName());
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d(LOG_TAG, "Method: " + new Object() {}.getClass().getEnclosingMethod().getName());
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(LOG_TAG, "Method: " + new Object() {}.getClass().getEnclosingMethod().getName());
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(LOG_TAG, "Method: " + new Object() {}.getClass().getEnclosingMethod().getName());
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(LOG_TAG, "Method: " + new Object() {}.getClass().getEnclosingMethod().getName());
+        super.onDestroy();
     }
 
     @Override
