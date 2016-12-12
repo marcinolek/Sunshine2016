@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -29,8 +30,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**
@@ -50,7 +49,7 @@ public class ForecastFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        String[] data = {
+        /*String[] data = {
                 "Mon 6/23 - Sunny - 31/17",
                 "Tue 6/24 - Foggy - 21/8",
                 "Wed 6/25 - Cloudy - 22/17",
@@ -60,12 +59,12 @@ public class ForecastFragment extends Fragment {
                 "Sun 6/29 - Sunny - 20/7"
         };
 
-        List<String> fakeForecasts = new ArrayList<String>(Arrays.asList(data));
+        List<String> fakeForecasts = new ArrayList<String>(Arrays.asList(data));*/
         mForecastAdapter = new ArrayAdapter<String>(
                 getActivity(),
                 R.layout.list_item_forecast,
                 R.id.list_item_forecast_textview,
-                fakeForecasts);
+                new ArrayList<String>());
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -83,6 +82,12 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        updateWeather();
+        super.onStart();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.forecastfragment, menu);
     }
@@ -92,11 +97,20 @@ public class ForecastFragment extends Fragment {
 //        Log.v(LOG_TAG, "Menu item " + item.getTitle() + " selected");
 
         if(item.getItemId() == R.id.action_refresh) {
-
-
-            new FetchWeatherTask().execute("80-890,pl");
+            updateWeather();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateWeather() {
+        String location = getCurrentLocation();
+        new FetchWeatherTask().execute(location);
+    }
+
+    private String getCurrentLocation() {
+
+        return PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+   //     return getActivity().getSharedPreferences("pref_general.xml", Context.MODE_PRIVATE).getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
     }
 
     private class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
@@ -305,7 +319,11 @@ public class ForecastFragment extends Fragment {
             JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
             double high = temperatureObject.getDouble(OWM_MAX);
             double low = temperatureObject.getDouble(OWM_MIN);
-
+            String unit = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.pref_unit_key), getString(R.string.pref_unit_default));
+            if(!unit.equals("metric")) {
+                high = convertToImperial(high);
+                low = convertToImperial(low);
+            }
             highAndLow = formatHighLows(high, low);
             resultStrs[i] = day + " - " + description + " - " + highAndLow;
         }
@@ -315,6 +333,10 @@ public class ForecastFragment extends Fragment {
         }*/
         return resultStrs;
 
+    }
+
+    private static double convertToImperial(double temp) {
+        return temp * 1.8 + 32;
     }
 
 }
