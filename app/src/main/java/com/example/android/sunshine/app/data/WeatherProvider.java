@@ -120,10 +120,10 @@ public class WeatherProvider extends ContentProvider {
         UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         // 2) Use the addURI function to match each of the types.  Use the constants from
         // WeatherContract to help define the types to the UriMatcher.
-        String weather = WeatherContract.PATH_WEATHER.toString();
+        String weather = WeatherContract.PATH_WEATHER;
 
         // content://com.example.android.sunshine.app/weather"
-        String location = WeatherContract.PATH_LOCATION.toString();
+        String location = WeatherContract.PATH_LOCATION;
         String weatherWithLocationPath = WeatherContract.WeatherEntry.buildWeatherLocation("*").toString();
         String weatherWithLocationAndStartDatePath = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate("*",0L).toString();
         matcher.addURI(WeatherContract.CONTENT_AUTHORITY,weather, WEATHER);
