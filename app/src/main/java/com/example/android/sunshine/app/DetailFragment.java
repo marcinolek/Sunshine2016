@@ -175,7 +175,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // Read wind speed and direction from cursor and update view
         float windSpeedStr = data.getFloat(COL_WIND_SPEED);
         float windDirStr = data.getFloat(COL_DEGREES);
-        mWindView.setText(Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr));
+        String wind = Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr);
+        mWindView.setText(wind);
 
         // Read pressure from cursor and update view
         float pressure = data.getFloat(COL_PRESSURE);

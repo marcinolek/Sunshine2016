@@ -4,6 +4,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:paddingLeft="16dp"
     android:gravity="center_vertical"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:orientation="horizontal"
@@ -43,6 +44,7 @@
         android:layout_width="0dp"
         android:layout_weight="5"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="vertical">
 
         <TextView
