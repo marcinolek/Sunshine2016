@@ -110,6 +110,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mHumidityView = (TextView) rootView.findViewById(R.id.detail_item_forecast_humidity);
         mWindView = (TextView) rootView.findViewById(R.id.detail_item_forecast_wind);
         mPressureView = (TextView) rootView.findViewById(R.id.detail_item_forecast_pressure);
+        mMyView = (MyView) rootView.findViewById(R.id.detail_item_my_view);
         return rootView;
     }
 
@@ -136,7 +137,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private TextView mHumidityView;
     private TextView mWindView;
     private TextView mPressureView;
-
+    private MyView mMyView;
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if(!data.moveToFirst()) {
@@ -178,6 +179,34 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         String wind = Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr);
         mWindView.setText(wind);
 
+        /*
+
+                TEMP, to test custom views
+         */
+        float degrees = windDirStr;
+        String direction = "Unknown";
+        if (degrees >= 337.5 || degrees < 22.5) {
+            direction = "N";
+        } else if (degrees >= 22.5 && degrees < 67.5) {
+            direction = "NE";
+        } else if (degrees >= 67.5 && degrees < 112.5) {
+            direction = "E";
+        } else if (degrees >= 112.5 && degrees < 157.5) {
+            direction = "SE";
+        } else if (degrees >= 157.5 && degrees < 202.5) {
+            direction = "S";
+        } else if (degrees >= 202.5 && degrees < 247.5) {
+            direction = "SW";
+        } else if (degrees >= 247.5 && degrees < 292.5) {
+            direction = "W";
+        } else if (degrees >= 292.5 && degrees < 337.5) {
+            direction = "NW";
+        }
+
+        mMyView.setDirection(direction);
+        /*
+            end of TEMP
+         */
         // Read pressure from cursor and update view
         float pressure = data.getFloat(COL_PRESSURE);
         mPressureView.setText(getActivity().getString(R.string.format_pressure, pressure));
@@ -187,6 +216,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             mShareActionProvider.setShareIntent(createShareForecastIntent());
         }
     }
+
+
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {

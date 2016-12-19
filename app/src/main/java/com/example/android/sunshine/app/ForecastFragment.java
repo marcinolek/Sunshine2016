@@ -119,6 +119,7 @@ public class ForecastFragment  extends Fragment implements LoaderManager.LoaderC
     public void onLoadFinished(Loader<Cursor> loader, final Cursor cursor) {
         mForecastAdapter.swapCursor(cursor);
         mListView.smoothScrollToPosition(currentPosition);
+
     }
 
     @Override

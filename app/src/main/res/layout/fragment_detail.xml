@@ -19,6 +19,7 @@
           android:layout_height="match_parent"
           android:orientation="vertical"
           >
+
           <TextView
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
@@ -127,6 +128,12 @@
               android:textAppearance="?android:textAppearanceLarge"
               android:fontFamily="sans-serif-light"
               android:id="@+id/detail_item_forecast_wind"
+              />
+          <com.example.android.sunshine.app.MyView
+              android:layout_marginTop="10dp"
+              android:layout_height="100dp"
+              android:layout_width="100dp"
+              android:id="@+id/detail_item_my_view"
               />
           </LinearLayout>
 
