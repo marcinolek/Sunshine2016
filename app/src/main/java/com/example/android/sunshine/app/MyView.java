@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -11,17 +12,13 @@ import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-
 /**
  * Created by marcinolek on 19.12.2016.
  */
 
 public class MyView extends View {
     public MyView(Context context) {
-        
+
         super(context);
     }
 
@@ -33,17 +30,12 @@ public class MyView extends View {
         super(context, attrs, DefaultStyle);
     }
 
-    private String[] validDirections = {"N", "S", "W", "E", "NW", "NE", "SW", "SE"};
-
-    private String mDirection = "N";
+    private float mDirection;
 
     private GestureDetector mGestureDetector = new GestureDetector(getContext(), new mListener());
 
-    public void setDirection(String direction) {
-        List<String> list = Arrays.asList(validDirections);
-        if(list.contains(direction)) {
-            this.mDirection = direction;
-        }
+    public void setDirection(float degrees) {
+        this.mDirection = degrees;
     }
 
     @Override
@@ -75,20 +67,20 @@ public class MyView extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
-    static final float ARROW_LENGTH = 30.0f;
-
+    static final float ARROW_LENGTH = 60.0f;
+    static final float ARROW_HEAD_LENGTH = ARROW_LENGTH / 2f;
     @Override
     public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
-        event.getText().add("Wind direction is " +  this.mDirection);
+        event.getText().add("Wind direction is " + this.mDirection);
         return true;
     }
 
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Random rnd = new Random();
+        /*Random rnd = new Random();
         int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-        this.setBackgroundColor(color);
+        this.setBackgroundColor(color);*/
         return super.onTouchEvent(event);
     }
 
@@ -98,11 +90,14 @@ public class MyView extends View {
         super.onDraw(canvas);
         int h = canvas.getHeight();
         int w = canvas.getWidth();
-        Paint p = new Paint();
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setStyle(Paint.Style.FILL_AND_STROKE);
-        p.setColor(Color.MAGENTA);
-        p.setStrokeWidth(5f);
-        this.setContentDescription("Wind direction is " +  this.mDirection);
+        p.setColor(getResources().getColor(R.color.sunshine_dark_blue));
+        p.setStrokeWidth(3f);
+        Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        circlePaint.setStyle(Paint.Style.STROKE);
+        circlePaint.setColor(Color.GRAY);
+        this.setContentDescription("Wind direction is " + this.mDirection);
         AccessibilityManager accessibilityManager =
                 (AccessibilityManager) getContext().getSystemService(
                         Context.ACCESSIBILITY_SERVICE);
@@ -111,51 +106,16 @@ public class MyView extends View {
                     AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED);
         }
 
-        switch(this.mDirection) {
-            case "N":
-                canvas.drawLine(w/2, h, w/2, 0, p);
-                canvas.drawLine(w/2, 0, w/2 - ARROW_LENGTH,0 + ARROW_LENGTH, p);
-                canvas.drawLine(w/2, 0, w/2 + ARROW_LENGTH,0 + ARROW_LENGTH, p);
-
-                break;
-            case "S":
-                canvas.drawLine(w/2, 0, w/2, h,  p);
-                canvas.drawLine(w/2, h, w/2 - ARROW_LENGTH,h - ARROW_LENGTH, p);
-                canvas.drawLine(w/2, h, w/2 + ARROW_LENGTH,h - ARROW_LENGTH, p);
-                break;
-            case "E":
-                canvas.drawLine(0, h/2, w, h/2,  p);
-                canvas.drawLine(w, h/2, w - ARROW_LENGTH,h/2 - ARROW_LENGTH, p);
-                canvas.drawLine(w, h/2, w - ARROW_LENGTH,h/2 + ARROW_LENGTH, p);
-                break;
-            case "W":
-                canvas.drawLine(w, h/2, 0, h/2,  p);
-                canvas.drawLine(0, h/2, 0 + ARROW_LENGTH,h/2 - ARROW_LENGTH, p);
-                canvas.drawLine(0, h/2, 0 + ARROW_LENGTH,h/2 + ARROW_LENGTH, p);
-                break;
-            case "NE":
-                canvas.drawLine(0, h, w, 0, p);
-                canvas.drawLine(w, 0, w - ARROW_LENGTH, 0, p);
-                canvas.drawLine(w, 0, w, ARROW_LENGTH, p);
-                break;
-            case "NW":
-                canvas.drawLine(w, w, 0, 0, p);
-                canvas.drawLine(0, 0, 0, ARROW_LENGTH, p);
-                canvas.drawLine(0, 0, ARROW_LENGTH, 0, p);
-                break;
-            case "SW":
-                canvas.drawLine(w, 0, 0, h, p);
-                canvas.drawLine(0, h, 0, h - ARROW_LENGTH, p);
-                canvas.drawLine(0, h, ARROW_LENGTH, h, p);
-                break;
-            case "SE":
-                canvas.drawLine(0, 0, w, w, p);
-                canvas.drawLine(w, w, w, h - ARROW_LENGTH, p);
-                canvas.drawLine(w, w, w - ARROW_LENGTH, w, p);
-                break;
-            default:
-                break;
-        }
+        double radians = Math.toRadians(mDirection);
+        Point origin = new Point(w/2, h/2);
+        double endX = origin.x + ARROW_LENGTH * Math.cos(radians - Math.PI/2);
+        double endY = origin.y + ARROW_LENGTH * Math.sin(radians - Math.PI/2);
+        double startX = origin.x + ARROW_LENGTH * Math.cos(radians+Math.PI/2);
+        double startY = origin.y + ARROW_LENGTH * Math.sin(radians+Math.PI/2);
+        canvas.drawCircle(origin.x, origin.y, ARROW_LENGTH, circlePaint);
+        canvas.drawLine((float)startX, (float)startY, (float)endX, (float)endY, p);
+        canvas.drawLine((float)endX, (float)endY,(float) (endX + Math.cos(radians + Math.PI/2 + Math.PI/6) * ARROW_HEAD_LENGTH), (float)(endY + Math.sin(radians + Math.PI/2 + Math.PI/6) * ARROW_HEAD_LENGTH), p);
+        canvas.drawLine((float)endX, (float)endY,(float) (endX + Math.cos(radians + Math.PI/2 - Math.PI/6) * ARROW_HEAD_LENGTH), (float)(endY + Math.sin(radians + Math.PI/2 - Math.PI/6) * ARROW_HEAD_LENGTH), p);
 
     }
 

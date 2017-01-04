@@ -203,7 +203,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             direction = "NW";
         }
 
-        mMyView.setDirection(direction);
+        mMyView.setDirection(degrees);
         /*
             end of TEMP
          */
