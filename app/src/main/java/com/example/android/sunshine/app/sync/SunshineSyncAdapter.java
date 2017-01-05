@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.format.Time;
@@ -38,13 +39,35 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+import static com.example.android.sunshine.app.sync.SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_LOCATION_INVALID;
+import static com.example.android.sunshine.app.sync.SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_OK;
+import static com.example.android.sunshine.app.sync.SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_SERVER_DOWN;
+import static com.example.android.sunshine.app.sync.SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_SERVER_INVALID;
+import static com.example.android.sunshine.app.sync.SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_UNKNOWN;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN, LOCATION_STATUS_LOCATION_INVALID})
+    public @interface LocationStatus {
+
+        public static final int LOCATION_STATUS_OK = 0;
+        public static final int LOCATION_STATUS_SERVER_DOWN = 1;
+        public static final int LOCATION_STATUS_SERVER_INVALID = 2;
+        public static final int LOCATION_STATUS_UNKNOWN = 3;
+        public static final int LOCATION_STATUS_LOCATION_INVALID = 4;
+        
+    }
+
     public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
 
 
@@ -72,6 +95,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
 
+    void setLocationStatus(@LocationStatus int status) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(getContext().getString(R.string.pref_location_status_key), status);
+        editor.commit();
+    }
+
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         Log.d(LOG_TAG, "onPerformSync Called.");
@@ -98,8 +128,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             // Construct the URL for the OpenWeatherMap query
             // Possible parameters are avaiable at OWM's forecast API page, at
             // http://openweathermap.org/API#forecast
-            final String FORECAST_BASE_URL =
-                    "http://api.openweathermap.org/data/2.5/forecast/daily?";
+            final String FORECAST_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
             final String QUERY_PARAM = "q";
             final String FORMAT_PARAM = "mode";
             final String UNITS_PARAM = "units";
@@ -140,6 +169,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
+                setLocationStatus(LOCATION_STATUS_SERVER_DOWN);
                 return;
             }
             forecastJsonStr = buffer.toString();
@@ -147,8 +177,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
+            setLocationStatus(LOCATION_STATUS_LOCATION_INVALID);
             return;
-        } finally {
+        }
+        finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
@@ -165,6 +197,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             getWeatherDataFromJson(forecastJsonStr, locationQuery);
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
+            setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
             e.printStackTrace();
         }
         // This will only happen if there was an error getting or parsing the forecast.
@@ -265,7 +298,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         getSyncAccount(context);
     }
 
-    private Void getWeatherDataFromJson(String forecastJsonStr,
+    /**
+     * Take the String representing the complete forecast in JSON Format and
+     * pull out the data we need to construct the Strings needed for the wireframes.
+     *
+     * Fortunately parsing is easy:  constructor takes the JSON string and converts it
+     * into an Object hierarchy for us.
+     */
+    private void getWeatherDataFromJson(String forecastJsonStr,
                                         String locationSetting)
             throws JSONException {
 
@@ -300,9 +340,19 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         final String OWM_WEATHER = "weather";
         final String OWM_DESCRIPTION = "main";
         final String OWM_WEATHER_ID = "id";
+        final String OWM_MESSAGE_CODE = "cod";
 
         try {
             JSONObject forecastJson = new JSONObject(forecastJsonStr);
+
+            if (forecastJson.has(OWM_MESSAGE_CODE)) {
+                int code = forecastJson.getInt(OWM_MESSAGE_CODE);
+                if (code == HTTP_NOT_FOUND) {
+                    setLocationStatus(LOCATION_STATUS_LOCATION_INVALID);
+                    return;
+                }
+            }
+
             JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
             JSONObject cityJson = forecastJson.getJSONObject(OWM_CITY);
@@ -372,6 +422,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 high = temperatureObject.getDouble(OWM_MAX);
                 low = temperatureObject.getDouble(OWM_MIN);
 
+
+
                 ContentValues weatherValues = new ContentValues();
 
                 weatherValues.put(WeatherContract.WeatherEntry.COLUMN_LOC_KEY, locationId);
@@ -388,44 +440,70 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 cVVector.add(weatherValues);
             }
 
+            int inserted = 0;
             // add to database
             if ( cVVector.size() > 0 ) {
-                // Student: call bulkInsert to add the weatherEntries to the database here
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
                 getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
 
-                //remove old data
-
-                getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI, "" + WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?", new String[] { Long.toString(dayTime.setJulianDay(julianStartDay - 1))});
+                // delete old data so we don't build up an endless history
+                getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
+                        WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
+                        new String[] {Long.toString(dayTime.setJulianDay(julianStartDay-1))});
 
                 notifyWeather();
+
             }
-
-
+            setLocationStatus(LOCATION_STATUS_OK);
+            Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
 
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
+            setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
             e.printStackTrace();
         }
-        return null;
     }
 
     long addLocation(String locationSetting, String cityName, double lat, double lon) {
-        // Students: First, check if the location with this city name exists in the db
-        // If it exists, return the current ID
-        // Otherwise, insert it using the content resolver and the base URI
+        long locationId;
 
-        Cursor c = getContext().getContentResolver().query(WeatherContract.LocationEntry.CONTENT_URI, new String[]{WeatherContract.LocationEntry._ID},WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? ",new String[] {locationSetting}, null);
-        if(c.moveToFirst()) return c.getLong(c.getColumnIndex(WeatherContract.LocationEntry._ID));
-        ContentValues values = new ContentValues();
-        values.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
-        values.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
-        values.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
-        values.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
-        Uri insertedUri = getContext().getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI, values);
-        long insertedId = ContentUris.parseId(insertedUri);
-        return insertedId;
+        // First, check if the location with this city name exists in the db
+        Cursor locationCursor = getContext().getContentResolver().query(
+                WeatherContract.LocationEntry.CONTENT_URI,
+                new String[]{WeatherContract.LocationEntry._ID},
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
+                new String[]{locationSetting},
+                null);
+
+        if (locationCursor.moveToFirst()) {
+            int locationIdIndex = locationCursor.getColumnIndex(WeatherContract.LocationEntry._ID);
+            locationId = locationCursor.getLong(locationIdIndex);
+        } else {
+            // Now that the content provider is set up, inserting rows of data is pretty simple.
+            // First create a ContentValues object to hold the data you want to insert.
+            ContentValues locationValues = new ContentValues();
+
+            // Then add the data, along with the corresponding name of the data type,
+            // so the content provider knows what kind of value is being inserted.
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
+
+            // Finally, insert location data into the database.
+            Uri insertedUri = getContext().getContentResolver().insert(
+                    WeatherContract.LocationEntry.CONTENT_URI,
+                    locationValues
+            );
+
+            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
+            locationId = ContentUris.parseId(insertedUri);
+        }
+
+        locationCursor.close();
+        // Wait, that worked?  Yes!
+        return locationId;
     }
 
     private void notifyWeather() {

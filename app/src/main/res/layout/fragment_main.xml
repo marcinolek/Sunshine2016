@@ -10,5 +10,13 @@
         android:layout_height="match_parent"
         style="@style/ForecastListStyle"
         />
+    <TextView
+        android:id="@+id/weather_empty_view"
+        android:layout_width="match_parent"
+        android:gravity="center_horizontal"
+        android:layout_margin="20dp"
+        android:layout_height="wrap_content"
+        android:text="@string/weather_empty"
+        />
 
 </FrameLayout>

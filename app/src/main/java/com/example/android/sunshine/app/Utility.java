@@ -17,8 +17,12 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
+
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,6 +33,21 @@ public class Utility {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getString(context.getString(R.string.pref_location_key),
                 context.getString(R.string.pref_location_default));
+    }
+
+    @SunshineSyncAdapter.LocationStatus
+    public static int getLocationStatus(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        @SunshineSyncAdapter.LocationStatus
+        int status = prefs.getInt(context.getString(R.string.pref_location_status_key), 3);
+        return status;
+    }
+
+    public static void resetLocationStatus(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(context.getString(R.string.pref_location_status_key), SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_UNKNOWN);
+        editor.apply();
     }
 
     public static boolean isMetric(Context context) {
@@ -243,5 +262,11 @@ public class Utility {
             return R.drawable.art_clouds;
         }
         return -1;
+    }
+
+    static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = manager.getActiveNetworkInfo();
+        return info != null && info.isConnectedOrConnecting();
     }
 }

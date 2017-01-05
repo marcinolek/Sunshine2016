@@ -16,9 +16,11 @@
 package com.example.android.sunshine.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -33,6 +35,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
@@ -40,7 +43,7 @@ import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
  */
-public class ForecastFragment  extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment  extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener{
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     /**
@@ -59,8 +62,28 @@ public class ForecastFragment  extends Fragment implements LoaderManager.LoaderC
 
     private static final int MY_LOADER_ID = 0;
     private ListView mListView;
+    private SharedPreferences.OnSharedPreferenceChangeListener mOnSharedPreferencesChangeListener;
 
     public ForecastFragment() {
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        updateEmptyView();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        prefs.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        prefs.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
     }
 
     private static final String[] FORECAST_COLUMNS = {
@@ -119,9 +142,35 @@ public class ForecastFragment  extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, final Cursor cursor) {
+        updateEmptyView();
         mForecastAdapter.swapCursor(cursor);
         mListView.smoothScrollToPosition(currentPosition);
 
+    }
+
+    private void updateEmptyView() {
+        TextView noWeather = (TextView) getView().findViewById(R.id.weather_empty_view);
+        if ( noWeather != null) {
+            int message = R.string.weather_empty;
+            if (!Utility.isNetworkAvailable(getActivity())) {
+                message = R.string.no_network;
+            }
+
+            switch (Utility.getLocationStatus(getActivity())) {
+                case SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_SERVER_DOWN:
+                    message = R.string.empty_forecast_list_server_down;
+                    break;
+                case SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_LOCATION_INVALID:
+                    message = R.string.empty_forecast_list_invalid_location;
+                    break;
+                case SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_SERVER_INVALID:
+                    message = R.string.empty_forecast_list_server_error;
+                    break;
+                default:
+                    break;
+            }
+            noWeather.setText(message);
+        }
     }
 
     @Override
@@ -166,6 +215,7 @@ public class ForecastFragment  extends Fragment implements LoaderManager.LoaderC
         mForecastAdapter.setmUseTodayLayout(mUseTodayLayout);
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        mListView.setEmptyView(rootView.findViewById(R.id.weather_empty_view));
         mListView.setAdapter(mForecastAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
