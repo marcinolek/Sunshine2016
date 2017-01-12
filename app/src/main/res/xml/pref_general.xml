@@ -10,6 +10,7 @@
         android:defaultValue="@string/pref_location_default"
         android:inputType="text"
         android:singleLine="true"
+        android:hint="@string/location_edit_hint"
         app:minLength="@integer/location_edit_minimum_length"
         />
 
@@ -23,6 +24,7 @@
         android:title="@string/pref_enable_notifications_label"
         android:key="@string/pref_enable_notifications_key"
         android:summaryOff="@string/pref_enable_notifications_false"
+
         android:summaryOn="@string/pref_enable_notifications_true"
         android:defaultValue="@string/pref_enable_notifications_default" />
 </PreferenceScreen>

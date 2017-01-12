@@ -108,6 +108,7 @@
     <!-- Strings used when displaying the state of the Location in settings -->
     <string name="pref_location_error_description">Invalid Location (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
     <string name="pref_location_unknown_description">Validating Location... (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
-    <string name="maximum_temperature">Maximum temperature: </string>
-    <string name="minimum_temperature">Minimum temperature: </string>
+    <string name="maximum_temperature">High temperature: <xliff:g id="high">%1$s</xliff:g></string>
+    <string name="minimum_temperature">Low temperature: <xliff:g id="low">%1$s</xliff:g></string>
+    <string name="location_edit_hint">Enter location to retrieve weather for</string>
 </resources>
