@@ -143,9 +143,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if(!data.moveToFirst()) {
             return;
         }
+        String description = data.getString(COL_WEATHER_DESC);
         int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
         mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
-
+        mIconView.setContentDescription("icon: " + description);
         // Read date from cursor and update views for day of week and date
         long date = data.getLong(COL_WEATHER_DATE);
         String friendlyDateText = Utility.getDayName(getActivity(), date);
@@ -154,7 +155,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mDateView.setText(dateText);
 
         // Read description from cursor and update view
-        String description = data.getString(COL_WEATHER_DESC);
+
         mDescriptionView.setText(description);
 
         // Read high temperature from cursor and update view
@@ -163,12 +164,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         double high = data.getDouble(COL_WEATHER_MAX_TEMP);
         String highString = Utility.formatTemperature(getActivity(), high, isMetric);
         mHighTempView.setText(highString);
+        mHighTempView.setContentDescription(getActivity().getString(R.string.maximum_temperature) + mHighTempView.getText());
 
         // Read low temperature from cursor and update view
         double low = data.getDouble(COL_WEATHER_MIN_TEMP);
         String lowString = Utility.formatTemperature(getActivity(), low, isMetric);
         mLowTempView.setText(lowString);
-
+        mLowTempView.setContentDescription(getActivity().getString(R.string.minimum_temperature) + mLowTempView.getText());
         // Read humidity from cursor and update view
         float humidity = data.getFloat(COL_HUMIDIY);
         mHumidityView.setText(getActivity().getString(R.string.format_humidity, humidity));
