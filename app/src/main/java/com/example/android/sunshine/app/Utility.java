@@ -57,6 +57,11 @@ public class Utility {
                 .equals(context.getString(R.string.pref_units_metric));
     }
 
+    public static String getPreferredIconPackUrl(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(context.getString(R.string.pref_icons_key), context.getString(R.string.format_art_url));
+    }
+
     public static String formatTemperature(Context context, double temperature, boolean isMetric) {
         double temp;
         if ( !isMetric ) {
@@ -262,6 +267,36 @@ public class Utility {
             return R.drawable.art_clouds;
         }
         return -1;
+    }
+
+    public static String getArtUrlForWeatherCondition(Context context, int weatherId) {
+        // Based on weather code data found at:
+        // http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
+        String artUrl = getPreferredIconPackUrl(context);
+        if (weatherId >= 200 && weatherId <= 232) {
+            return String.format(artUrl, "storm");
+        } else if (weatherId >= 300 && weatherId <= 321) {
+            return String.format(artUrl, "light_rain");
+        } else if (weatherId >= 500 && weatherId <= 504) {
+            return String.format(artUrl, "rain");
+        } else if (weatherId == 511) {
+            return String.format(artUrl, "snow");
+        } else if (weatherId >= 520 && weatherId <= 531) {
+            return String.format(artUrl, "rain");
+        } else if (weatherId >= 600 && weatherId <= 622) {
+            return String.format(artUrl, "snow");
+        } else if (weatherId >= 701 && weatherId <= 761) {
+            return String.format(artUrl, "fog");
+        } else if (weatherId == 761 || weatherId == 781) {
+            return String.format(artUrl, "storm");
+        } else if (weatherId == 800) {
+            return String.format(artUrl, "clear");
+        } else if (weatherId == 801) {
+            return String.format(artUrl, "light_clouds");
+        } else if (weatherId >= 802 && weatherId <= 804) {
+            return String.format(artUrl, "clouds");
+        }
+        return null;
     }
 
     static boolean isNetworkAvailable(Context context) {

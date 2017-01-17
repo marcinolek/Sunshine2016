@@ -68,6 +68,7 @@
             android:layout_height="100dp"
             android:gravity="center"
             android:id="@+id/list_item_icon"
+            android:adjustViewBounds="true"
             />
 
         <TextView

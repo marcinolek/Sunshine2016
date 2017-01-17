@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 /**
  * {@link ForecastAdapter} exposes a list of weather forecasts
  * from a {@link android.database.Cursor} to a {@link android.widget.ListView}.
@@ -126,11 +128,17 @@ public class ForecastAdapter extends CursorAdapter {
         int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
 
         int viewType = getItemViewType(cursor.getPosition());
-        if(viewType == VIEW_TYPE_TODAY) {
+       /* if(viewType == VIEW_TYPE_TODAY) {
             viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
         } else if(viewType == VIEW_TYPE_FUTURE) {
             viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));
-        }
+        }*/
+
+        Glide.with(context)
+                .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                .into(viewHolder.iconView);
+
 
         // TODO Read date from cursor
 

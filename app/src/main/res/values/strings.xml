@@ -17,7 +17,7 @@
     <string name="action_share">Share</string>
 
     <!-- Menu label to fetch updated weather info from the server -->
-    <string name="action_refresh" translatable="false">Refresh</string>
+    <string name="action_refresh">Refresh</string>
     <string name="title_activity_detail">Details</string>
     <string name="title_activity_settings">Settings</string>
 
@@ -47,6 +47,9 @@
 
     <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
     <string name="pref_units_imperial" translatable="false">imperial</string>
+
+    <!-- Format for retrieving art from an external source [CHAR LIMIT=NONE] -->
+    <string name="format_art_url" translatable="false">https://raw.githubusercontent.com/udacity/Sunshine-Version-2/sunshine_master/app/src/main/res/drawable-xxhdpi/art_<xliff:g id="description">%s</xliff:g>.png</string>
 
     <!-- Date label when displaying today's weather forecast [CHAR LIMIT=20] -->
     <string name="today">Today</string>
@@ -111,4 +114,14 @@
     <string name="maximum_temperature">High temperature: <xliff:g id="high">%1$s</xliff:g></string>
     <string name="minimum_temperature">Low temperature: <xliff:g id="low">%1$s</xliff:g></string>
     <string name="location_edit_hint">Enter location to retrieve weather for</string>
+    <string name="Snow">Snow</string>
+    <string name="Rain">Rain</string>
+
+    <!-- Value in SharedPreferences for icon pack option [CHAR LIMIT=NONE] -->
+    <string name="pref_icons_sunshine_name">Sunshine</string>
+    <string name="pref_icons_modern_name">Modern</string>
+    <string name="pref_icons_sunshine" translatable="false">https://raw.githubusercontent.com/udacity/Sunshine-Version-2/sunshine_master/app/src/main/res/drawable-xxhdpi/art_%s.png</string>
+    <string name="pref_icons_modern" translatable="false">https://raw.githubusercontent.com/udacity/sunshine_icons/master/Archive/Colored/art_%s.png</string>
+    <string name="pref_icons_key" translatable="false">icons_pack</string>
+    <string name="gcm_weather_alert">Heads up: %1$s in %2$s!</string>
 </resources>

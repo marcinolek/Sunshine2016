@@ -16,6 +16,7 @@ import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.text.format.Time;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
 import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
@@ -44,6 +46,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.example.android.sunshine.app.sync.SunshineSyncAdapter.LocationStatus.LOCATION_STATUS_LOCATION_INVALID;
@@ -544,8 +547,29 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext());
                     builder.setContentTitle(title);
                     builder.setContentText(contentText);
-                    builder.setSmallIcon(iconId);
 
+
+                    int largeIconWidth = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
+                            ? context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_width)
+                            : context.getResources().getDimensionPixelSize(R.dimen.notification_large_icon_default);
+                    int largeIconHeight = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
+                            ? context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_height)
+                            : context.getResources().getDimensionPixelSize(R.dimen.notification_large_icon_default);
+
+                    try {
+
+                        Bitmap largeIcon = Glide.with(context)
+                                .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                                .asBitmap()
+                                .error(iconId)
+                                .into(largeIconWidth, largeIconHeight)
+                                .get(); //blocking call
+                        builder.setLargeIcon(largeIcon);
+                        builder.setSmallIcon(iconId);
+
+                    } catch(InterruptedException | ExecutionException e) {
+                        builder.setSmallIcon(iconId);
+                    }
                     Intent resultIntent = new Intent(getContext(), MainActivity.class);
                     TaskStackBuilder stackBuilder = TaskStackBuilder.create(getContext());
                     stackBuilder.addParentStack(MainActivity.class);

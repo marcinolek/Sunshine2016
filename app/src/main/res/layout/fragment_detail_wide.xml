@@ -132,6 +132,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:id="@+id/detail_item_icon"
+                    android:adjustViewBounds="true"
                     />
 
                 <TextView
