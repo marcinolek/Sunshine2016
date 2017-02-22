@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,14 +49,14 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         }
     } else {
         mTwoPane = false;
-            getSupportActionBar().setElevation(0f);
+//            getSupportActionBar().setElevation(0f);
     }
 
         ForecastFragment forecastFragment = ((ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast));
         forecastFragment.setmUseTodayLayout(!mTwoPane);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+/*        getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.drawable.ic_logo);
-        getSupportActionBar().setTitle("");
+        getSupportActionBar().setTitle("");*/
         SunshineSyncAdapter.initializeSyncAdapter(this);
 
         if (!checkPlayServices()) {
@@ -63,6 +64,11 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
             // the latest version of Google Play Services, or add an error snackbar
             // that some features won't be available.
         }
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
     }
 

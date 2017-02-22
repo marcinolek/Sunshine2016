@@ -6,7 +6,7 @@
     android:paddingLeft="60dp"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:gravity="center_vertical"
-    android:background="@color/sunshine_blue"
+    android:background="@color/primary"
     >
 
 

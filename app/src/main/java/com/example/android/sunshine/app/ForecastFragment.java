@@ -183,6 +183,7 @@ public class ForecastFragment  extends Fragment implements LoaderManager.LoaderC
         super.onCreate(savedInstanceState);
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
+
     }
 
     @Override

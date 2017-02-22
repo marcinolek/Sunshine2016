@@ -92,7 +92,7 @@ public class MyView extends View {
         int w = canvas.getWidth();
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setStyle(Paint.Style.FILL_AND_STROKE);
-        p.setColor(getResources().getColor(R.color.sunshine_dark_blue));
+        p.setColor(getResources().getColor(R.color.primary_dark));
         p.setStrokeWidth(3f);
         Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         circlePaint.setStyle(Paint.Style.STROKE);
