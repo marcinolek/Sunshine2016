@@ -102,16 +102,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 ((TextView) rootView.findViewById(R.id.detail_text))
                         .setText(mForecastStr);
             }*/
-        mIconView = (ImageView) rootView.findViewById(R.id.detail_item_icon);
-        mDateView = (TextView) rootView.findViewById(R.id.detail_item_date_textview);
-        mFriendlyDateView = (TextView) rootView.findViewById(R.id.detail_item_monthday_textview);
-        mDescriptionView = (TextView) rootView.findViewById(R.id.detail_item_forecast_textview);
-        mHighTempView = (TextView) rootView.findViewById(R.id.detail_item_high_textview);
-        mLowTempView = (TextView) rootView.findViewById(R.id.detail_item_low_textview);
-        mHumidityView = (TextView) rootView.findViewById(R.id.detail_item_forecast_humidity);
-        mWindView = (TextView) rootView.findViewById(R.id.detail_item_forecast_wind);
-        mPressureView = (TextView) rootView.findViewById(R.id.detail_item_forecast_pressure);
-        mMyView = (MyView) rootView.findViewById(R.id.detail_item_my_view);
+        mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
+        mDateView = (TextView) rootView.findViewById(R.id.detail_date_textview);
+        mDescriptionView = (TextView) rootView.findViewById(R.id.detail_forecast_textview);
+        mHighTempView = (TextView) rootView.findViewById(R.id.detail_high_textview);
+        mLowTempView = (TextView) rootView.findViewById(R.id.detail_low_textview);
+        mHumidityView = (TextView) rootView.findViewById(R.id.detail_humidity_textview);
+        mHumidityLabelView = (TextView) rootView.findViewById(R.id.detail_humidity_label_textview);
+        mWindView = (TextView) rootView.findViewById(R.id.detail_wind_textview);
+        mWindLabelView = (TextView) rootView.findViewById(R.id.detail_wind_label_textview);
+        mPressureView = (TextView) rootView.findViewById(R.id.detail_pressure_textview);
+        mPressureLabelView = (TextView) rootView.findViewById(R.id.detail_pressure_label_textview);
         return rootView;
     }
 
@@ -130,7 +131,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     private ImageView mIconView;
-    private TextView mFriendlyDateView;
+
     private TextView mDateView;
     private TextView mDescriptionView;
     private TextView mHighTempView;
@@ -138,6 +139,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private TextView mHumidityView;
     private TextView mWindView;
     private TextView mPressureView;
+    private TextView mHumidityLabelView;
+    private TextView mWindLabelView;
+    private TextView mPressureLabelView;
     private MyView mMyView;
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -157,8 +161,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // Read date from cursor and update views for day of week and date
         long date = data.getLong(COL_WEATHER_DATE);
         String friendlyDateText = Utility.getDayName(getActivity(), date);
-        String dateText = Utility.getFormattedMonthDay(getActivity(), date);
-        mFriendlyDateView.setText(friendlyDateText);
+        String dateText = Utility.getFullFriendlyDayString(getActivity(),date);
         mDateView.setText(dateText);
 
         // Read description from cursor and update view
@@ -212,7 +215,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             direction = "NW";
         }
 
-        mMyView.setDirection(degrees);
+       // mMyView.setDirection(degrees);
         /*
             end of TEMP
          */
